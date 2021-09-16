@@ -1,2 +1,9 @@
 # Project exclude paths
+<<<<<<< HEAD
 /target/
+=======
+/target/
+.idea/
+out/
+uteplitel36.iml
+>>>>>>> 5987662 (Initial commit)
