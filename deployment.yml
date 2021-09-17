@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: uteplitel
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: uteplitel
+    spec:
+      containers:
+        - name: uteplitel
+          image: registry.gitlab.com/aloeseva/uteplitel36
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8020
+      imagePullSecrets:
+        - name: registry.gitlab.com

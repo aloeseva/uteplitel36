@@ -1,0 +1,59 @@
+image: docker:latest
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+  SPRING_PROFILES_ACTIVE: gitlab-ci
+
+stages:
+  - build
+  - package
+  - deploy
+
+maven-build:
+  image: maven:3-jdk-8
+  stage: build
+  script: "mvn package -B"
+  artifacts:
+    paths:
+      - target/*.jar
+
+docker-build:
+  stage: package
+  script:
+    - docker build -t uteplitel36 .
+    - docker save uteplitel36 > save-backend.tar
+    - docker build -t registry.gitlab.com/aloeseva/uteplitel36 .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker push registry.gitlab.com/aloeseva/uteplitel36
+
+Docker image:
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: docker
+  script:
+    - docker build -t rest_backend .
+    - docker save rest_backend > save-backend.tar
+  artifacts:
+    paths:
+      - save-backend.tar
+  only:
+    - main
+    - migrationInstance
+
+
+k8s-deploy:
+  image: google/cloud-sdk
+  stage: deploy
+  script:
+    - echo "$GOOGLE_KEY" > key.json
+    - gcloud auth activate-service-account --key-file key.json
+    - gcloud config set compute/zone europe-central2-c
+    - gcloud config set project actuator-sample
+    - gcloud config set container/use_client_certificate True
+    - gcloud container clusters get-credentials actuator-sample
+    - kubectl delete secret registry.gitlab.com
+    - kubectl create secret docker-registry registry.gitlab.com --docker-server=https://registry.gitlab.com --docker-username=aloeseva --docker-password=$REGISTRY_PASSWD --docker-email=45678913579@mail.ru
+    - kubectl apply -f docker-compose.yml
