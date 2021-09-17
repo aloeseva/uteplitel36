@@ -41,7 +41,7 @@ Docker image:
       - save-backend.tar
   only:
     - main
-    - migrationInstance
+#    - migrationInstance
 
 
 k8s-deploy:
