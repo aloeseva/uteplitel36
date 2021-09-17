@@ -20,6 +20,9 @@ maven-build:
       - target/*.jar
 
 docker-build:
+  image: docker:latest
+  services:
+    - docker:dind
   stage: package
   script:
     - docker build -t uteplitel36 .
@@ -28,19 +31,19 @@ docker-build:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
     - docker push registry.gitlab.com/aloeseva/uteplitel36
 
-Docker image:
-  image: docker:latest
-  services:
-    - docker:dind
-  stage: docker
-  script:
-    - docker build -t rest_backend .
-    - docker save rest_backend > save-backend.tar
-  artifacts:
-    paths:
-      - save-backend.tar
-  only:
-    - main
+#Docker image:
+#  image: docker:latest
+#  services:
+#    - docker:dind
+#  stage: deploy
+#  script:
+#    - docker build -t rest_backend .
+#    - docker save rest_backend > save-backend.tar
+#  artifacts:
+#    paths:
+#      - save-backend.tar
+#  only:
+#    - main
 #    - migrationInstance
 
 
